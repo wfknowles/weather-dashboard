@@ -17,8 +17,39 @@ async function weatherDashboardInit() {
 
     //Current Weather Test
     var weatherReport = await searchWeatherReport("Olathe,KS,USA");
-    console.log("weatherDashboardInit", weatherReport);
+    // console.log("weatherDashboardInit", weatherReport);
 
+    renderWeatherReport(weatherReport);
+
+}
+
+function renderWeatherReport(weatherReport) {
+    // console.log("renderWeatherReport", weatherReport.current, weatherReport.fiveDay);
+    renderCurrent(weatherReport.current);
+    renderFiveDay(weatherReport.fiveDay);
+}
+
+function renderCurrent(weatherObj) {
+    console.log("renderCurrent", weatherObj);
+
+    $("#cityName").html(weatherObj.name);
+    $("#todayDate").html(weatherObj.date);
+    $("#todayTemp").html(weatherObj.temp);
+    $("#todayWind").html(weatherObj.windspeed);
+    $("#todayHumidity").html(weatherObj.humidity);
+    $("#todayUv").html(weatherObj.uvindex);
+
+}
+
+function renderFiveDay(weatherObjArr) {
+    $(weatherObjArr).each(function(i, el) {
+        var fiveDayId = "#five-day-" + i;
+        $(fiveDayId).find(".five-day-date").html(el.date);
+        $(fiveDayId).find(".five-day-icon").html(el.icon);
+        $(fiveDayId).find(".five-day-temp").html(el.temp);
+        $(fiveDayId).find(".five-day-wind").html(el.windspeed);
+        $(fiveDayId).find(".five-day-humidity").html(el.humidity);
+    });
 }
 
 async function searchWeatherReport(locale) {
@@ -97,3 +128,4 @@ function parseWeatherObj(cityName, weatherObj) {
 
 
 weatherDashboardInit();
+
