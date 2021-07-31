@@ -24,32 +24,55 @@ async function weatherDashboardInit() {
 }
 
 function renderWeatherReport(weatherReport) {
-    // console.log("renderWeatherReport", weatherReport.current, weatherReport.fiveDay);
     renderCurrent(weatherReport.current);
     renderFiveDay(weatherReport.fiveDay);
 }
 
 function renderCurrent(weatherObj) {
-    console.log("renderCurrent", weatherObj);
-
-    $("#cityName").html(weatherObj.name);
-    $("#todayDate").html(weatherObj.date);
-    $("#todayTemp").html(weatherObj.temp);
-    $("#todayWind").html(weatherObj.windspeed);
-    $("#todayHumidity").html(weatherObj.humidity);
-    $("#todayUv").html(weatherObj.uvindex);
-
+    var status = getUvIndexStatus(weatherObj.uvindex);
+    $("#current-city").html(weatherObj.name);
+    $("#current-date").html(weatherObj.date);
+    $("#current-icon").attr("src", "http://openweathermap.org/img/wn/"+weatherObj.icon+"@2x.png");
+    $("#current-temp").html(parseKelvinToFahrenheit(weatherObj.temp));
+    $("#current-wind").html(weatherObj.windspeed);
+    $("#current-humidity").html(weatherObj.humidity);
+    $("#current-uv").html(weatherObj.uvindex).addClass(status);
 }
 
 function renderFiveDay(weatherObjArr) {
     $(weatherObjArr).each(function(i, el) {
         var fiveDayId = "#five-day-" + i;
         $(fiveDayId).find(".five-day-date").html(el.date);
-        $(fiveDayId).find(".five-day-icon").html(el.icon);
-        $(fiveDayId).find(".five-day-temp").html(el.temp);
+        $(fiveDayId).find(".five-day-icon").attr("src", "http://openweathermap.org/img/wn/"+el.icon+"@2x.png");
+        $(fiveDayId).find(".five-day-temp").html(parseKelvinToFahrenheit(el.temp.max));
         $(fiveDayId).find(".five-day-wind").html(el.windspeed);
         $(fiveDayId).find(".five-day-humidity").html(el.humidity);
     });
+}
+
+function parseKelvinToFahrenheit(kelvin) {
+    var fahrenheit = (((kelvin-273.15)*(9/5)) + 32).toFixed(2);
+    return fahrenheit;
+}
+
+function getUvIndexStatus(index) {
+    var status = "";
+    if (index >= 0.00 && index <= 2.00) {
+        //Low
+        status = "low";
+    } else if (index >= 3.00 && index <= 5.00) {
+        //Moderate
+        status = "moderate";
+    } else if (index >= 6.00 && index <= 7.00) {
+        //High
+        status = "high";
+    } else if (index >= 8.00 && index <= 10.00) {
+        //Very High
+        status = "very-high";
+    } else {
+        //Do Nothing
+    }
+    return status;
 }
 
 async function searchWeatherReport(locale) {
@@ -115,7 +138,7 @@ function getWeatherReport(geoData) {
 function parseWeatherObj(cityName, weatherObj) {
     var parsedWeatherObj = {
         name: cityName,
-        date: weatherObj.dt,
+        date: new Date(weatherObj.dt * 1000).toDateString(),
         temp: weatherObj.temp,
         humidity: weatherObj.humidity,
         windspeed: weatherObj.wind_speed,
@@ -125,7 +148,6 @@ function parseWeatherObj(cityName, weatherObj) {
     };
     return parsedWeatherObj;
 }
-
 
 weatherDashboardInit();
 

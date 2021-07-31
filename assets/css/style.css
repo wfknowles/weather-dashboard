@@ -1,3 +1,13 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-size: 16px;
+}
+
 #dash-title {
     background: blue;
 }
@@ -7,5 +17,81 @@
 }
 
 #dash-body {
+    width: 100%;
     background: green;
+    padding: 40px;
+}
+
+.current-wrapper {
+    width: 100%;
+    background: white;
+    color: black;
+}
+
+.current-wrapper > .row {
+    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.five-day-wrapper {
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important
+}
+
+.five-day-wrapper > .row {
+    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    margin: 15px 0 !important;
+    padding: 0 !important;
+}
+
+.five-day-wrapper .five-day {
+    width: 100%;
+    background: black;
+    color: white;
+    text-align: center;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.five-day-wrapper .five-day > .row {
+    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+
+.col-md-20 {
+    width: calc(20% - 10px);
+    margin: 0;
+    padding: 0;
+}
+
+.uvindex {
+    padding: 10px;
+    color: white
+}
+
+.uvindex.low {
+    background-color: green;
+}
+
+.uvindex.moderate {
+    background-color: yellow;
+    color: black;
+}
+
+.uvindex.high {
+    background-color: orange;
+}
+
+.uvindex.very-high {
+    background-color: red;
 }
