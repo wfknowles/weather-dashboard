@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"/>
+</head>
+<body>
+    <header>
+        <div class="row" id="dash-title">
+            <div class="col-md-12">
+                <h1>Weather Dashboard</h1>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="row">
+            <div class="col-md-4" id="dash-menu">
+                <div class="row">
+                    <div class="col-md-12" id="dash-form">
+                        <input type="text" name="locality" value="" class="input" id="localityInput" />
+                        <button class="btn btn-large" id="localityBtn">
+                            Search
+                        </button>
+                    </div>
+                    <div class="col-md-12" id="dash-history">
+                        <div class="row">
+                            <div class="col-md-12 local-history-wrapper">
+                                <button class="btn locale-history-item" data-id="0">
+                                    Locality
+                                </button>
+                            </div>
+                            <div class="col-md-12 locale-history-wrapper">
+                                <button class="btn locale-history-item" data-id="1">
+                                    Locality 1
+                                </button>
+                            </div>
+                            <div class="col-md-12 locale-history-wrapper">
+                                <button class="btn locale-history-item" data-id="2">
+                                    Locality 2
+                                </button>
+                            </div>
+                            <div class="col-md-12 locale-history-wrapper">
+                                <button class="btn locale-history-item" data-id="3">
+                                    Locality 3
+                                </button>
+                            </div>
+                            <div class="col-md-12 locale-history-wrapper">
+                                <button class="btn locale-history-item" data-id="4">
+                                    Locality 4
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8" id="dash-body">
+                <div class="row">
+                    <div class="col-md-12" id="forecast-today">
+
+                    </div>
+                    <div class="col-md-12" id="forecast-future">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="./assets/js/script.js"></script>
+</body>
+</html>
