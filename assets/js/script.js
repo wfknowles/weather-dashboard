@@ -1,102 +1,99 @@
 const openWeatherApiKey = "336ee374d3adce93770987a7cc399904";
-const baseUrl = "https://api.openweathermap.org/data/2.5/";
+const defaultSearchHistory = [];
+
+//Get searchHistory from localStorage
+function getSearchHistory() {
+    var searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || defaultSearchHistory;
+    // var searchHistory = defaultSearchHistory;
+    return searchHistory;
+}
+
+//Set setHistory to localStorage
+function setSearchHistory(searchHistory) {
+    localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+}
 
 async function weatherDashboardInit() {
 
     //Current Weather Test
-    var geoCode = getGeoCode("Olathe,KS,USA");
+    var weatherReport = await searchWeatherReport("Olathe,KS,USA");
+    console.log("weatherDashboardInit", weatherReport);
 
 }
 
-function getWeatherByZipCode(zip_code) {
+async function searchWeatherReport(locale) {
+    var geoData = await getGeoData(locale);
+    
+    // Add geoData to searchHistory array
+    addGeoDataToSearchHistory(geoData);
 
+    // Get weatherReport
+    var weatherReport = await getWeatherReport(geoData);
+    return weatherReport;
 }
 
-function getGeoCode(locale) {
-    var apiName = "direct?";
-    var queryString = apiName + 'q=' + locale + '&limit=1' + '&appid=' + openWeatherApiKey;
+function addGeoDataToSearchHistory(geoData) {
+    var searchHistory = getSearchHistory();
 
-    var apiURL = "http://api.openweathermap.org/geo/1.0/" + queryString;
+    if (searchHistory.find(x => x.lat == geoData.lat && x.lon == geoData.lon)) {
+        //Do Nothing
+    } else {
+        searchHistory.push(geoData);
+        setSearchHistory(searchHistory);
+    }
+}
 
-    var fetchData = fetch(apiURL)
+function getGeoData(locale) {
+    var fetchURL = "http://api.openweathermap.org/geo/1.0/direct?q=" + locale + "&limit=1&appid=" + openWeatherApiKey;
+    var fetchData = fetch(fetchURL)
     .then(response => response.json())
     .then(function(data){
-
-        var name = data[0].name;
-        var lat = data[0].lat;
-        var lon = data[0].lon;
-
-        var oneCallUrl = baseUrl + "onecall?&lat=" + lat + "&lon=" + lon + "&appid=" + openWeatherApiKey;
-        var oneCall = fetch(oneCallUrl)
-        .then(response => response.json())
-        .then(function(data){
-            // return data;
-            console.log("onecall", data);
-            console.log("current weather", data.current);
-            console.log("locality", name);
-        });
-    });
-}
-
-
-function getCurrentWeatherByZipCode(zip_code) {
-    var apiName = "weather?"
-    var queryString = apiName + 'zip=' + zip_code + '&appid=' + openWeatherApiKey;
-
-    var fetchData = fetch(baseUrl + queryString)
-    .then(response => response.json())
-    .then(function(data){
-        return data;
-    });
+        var geoData = {
+            name: data[0].name,
+            lat: data[0].lat,
+            lon: data[0].lon
+        }
+        return geoData;
+    })
 
     return fetchData;
 }
 
-// function apiTest1() {
-//     var openWeatherApiKey = "336ee374d3adce93770987a7cc399904";
-//     var baseUrl = "https://api.openweathermap.org/data/2.5/onecall?";
-//     var latitude = "";
-//     var longitude = "";
-//     var exclude = "";
-//     var queryString = "&lat=" + latitude + "&lon=" + longitude + "&exclude=" + exclude + "&appid=" + openWeatherApiKey;
+function getWeatherReport(geoData) {
+    var fetchUrl = "https://api.openweathermap.org/data/2.5/onecall?&lat=" + geoData.lat + "&lon=" + geoData.lon + "&appid=" + openWeatherApiKey;
+    var fetchData = fetch(fetchUrl)
+    .then(response => response.json())
+    .then(function(data){
 
-//     fetch(baseUrl + queryString)
-//     .then(response => response.json())
-//     .then(function(data){
-//         console.log(data);
-//     });
-// }
+        var cityWeatherObj = {
+            current: parseWeatherObj(geoData.name, data.current),
+            fiveDay: [
+                parseWeatherObj(geoData.name, data.daily[0]),
+                parseWeatherObj(geoData.name, data.daily[1]),
+                parseWeatherObj(geoData.name, data.daily[2]),
+                parseWeatherObj(geoData.name, data.daily[3]),
+                parseWeatherObj(geoData.name, data.daily[4])
+            ]
+        };
 
-// function apiTest2() {
-//     var openWeatherApiKey = "336ee374d3adce93770987a7cc399904";
-//     var baseUrl = "https://api.openweathermap.org/data/2.5/";
-//     var apiName = "weather?";
-//     var city = "olathe";
-//     var state = "ks";
-//     var queryString = apiName + "q=" + city + "," + state + "&appid=" + openWeatherApiKey;
+        return cityWeatherObj;
+    });
+    return fetchData;
+}
 
-//     console.log(queryString);
-//     fetch(baseUrl + queryString)
-//     .then(response => response.json())
-//     .then(function(data){
-//         console.log(data);
-//     });
-// }
+function parseWeatherObj(cityName, weatherObj) {
+    var parsedWeatherObj = {
+        name: cityName,
+        date: weatherObj.dt,
+        temp: weatherObj.temp,
+        humidity: weatherObj.humidity,
+        windspeed: weatherObj.wind_speed,
+        uvindex: weatherObj.uvi,
+        icon: weatherObj.weather[0].icon,
+        desc: weatherObj.weather[0].desc
+    };
+    return parsedWeatherObj;
+}
 
-// function apiTest3() {
-    
-//     var apiName = "weather?";
-//     var zipCode = "66061";
-//     var queryString = apiName + 'zip=' + zipCode + '&appid=' + openWeatherApiKey;
-
-//     console.log(queryString);
-//     fetch(baseUrl + queryString)
-//     .then(response => response.json())
-//     .then(function(data){
-//         console.log(data);
-//     });
-// }
 
 weatherDashboardInit();
-// apiTest2();
-// apiTest3();
