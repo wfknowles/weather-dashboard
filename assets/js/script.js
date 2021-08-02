@@ -146,7 +146,7 @@ function addGeoDataToSearchHistory(geoData) {
 }
 
 function getGeoData(locale) {
-    var fetchURL = "http://api.openweathermap.org/geo/1.0/direct?q=" + locale + "&limit=1&appid=" + openWeatherApiKey;
+    var fetchURL = "https://api.openweathermap.org/geo/1.0/direct?q=" + locale + "&limit=1&appid=" + openWeatherApiKey;
     var fetchData = fetch(fetchURL)
     .then(response => response.json())
     .then(function(data){
