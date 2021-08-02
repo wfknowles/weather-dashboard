@@ -4,28 +4,47 @@ const defaultSearchHistory = [];
 //Get searchHistory from localStorage
 function getSearchHistory() {
     var searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || defaultSearchHistory;
-    // var searchHistory = defaultSearchHistory;
     return searchHistory;
 }
 
 //Set setHistory to localStorage
 function setSearchHistory(searchHistory) {
     localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+    renderSearchHistory(searchHistory);
 }
 
 async function weatherDashboardInit() {
 
-    //Current Weather Test
-    var weatherReport = await searchWeatherReport("Olathe,KS,USA");
-    // console.log("weatherDashboardInit", weatherReport);
+    //Get Search History
+    var searchHistory = await getSearchHistory();
 
-    renderWeatherReport(weatherReport);
+    if (searchHistory) {
+        renderSearchHistory(searchHistory);
+        var weatherReport = await getWeatherReport(searchHistory[0]);
+        if (weatherReport) {
+            renderWeatherReport(weatherReport);
+        }
+    } else {
+        //No searchHistory
+    }
+    
+}
 
+function renderSearchHistory(searchHistory) {
+    var html = "";
+    $(searchHistory).each(function(i, el){
+        html += '<div class="history-item-wrapper">';
+        html += '<button class="history-item" data-name="'+el.name+'" data-lat="'+el.lat+'" data-lon="'+el.lon+'">'+el.name+'</button>';
+        html += '</div>'; 
+    });
+    $("#dash-history").html(html);
 }
 
 function renderWeatherReport(weatherReport) {
-    renderCurrent(weatherReport.current);
-    renderFiveDay(weatherReport.fiveDay);
+    if (weatherReport) {
+        renderCurrent(weatherReport.current);
+        renderFiveDay(weatherReport.fiveDay);
+    }
 }
 
 function renderCurrent(weatherObj) {
@@ -33,20 +52,20 @@ function renderCurrent(weatherObj) {
     $("#current-city").html(weatherObj.name);
     $("#current-date").html(weatherObj.date);
     $("#current-icon").attr("src", "http://openweathermap.org/img/wn/"+weatherObj.icon+"@2x.png");
-    $("#current-temp").html(parseKelvinToFahrenheit(weatherObj.temp));
-    $("#current-wind").html(weatherObj.windspeed);
-    $("#current-humidity").html(weatherObj.humidity);
+    $("#current-temp").html(parseKelvinToFahrenheit(weatherObj.temp) + "°F");
+    $("#current-wind").html(weatherObj.windspeed + "°");
+    $("#current-humidity").html(weatherObj.humidity + "%");
     $("#current-uv").html(weatherObj.uvindex).addClass(status);
 }
 
 function renderFiveDay(weatherObjArr) {
     $(weatherObjArr).each(function(i, el) {
-        var fiveDayId = "#five-day-" + i;
-        $(fiveDayId).find(".five-day-date").html(el.date);
-        $(fiveDayId).find(".five-day-icon").attr("src", "http://openweathermap.org/img/wn/"+el.icon+"@2x.png");
-        $(fiveDayId).find(".five-day-temp").html(parseKelvinToFahrenheit(el.temp.max));
-        $(fiveDayId).find(".five-day-wind").html(el.windspeed);
-        $(fiveDayId).find(".five-day-humidity").html(el.humidity);
+        var forecastId = "#forecast-future-" + i;
+        $(forecastId).find(".forecast-future-date").html(el.date);
+        $(forecastId).find(".forecast-future-icon").attr("src", "http://openweathermap.org/img/wn/"+el.icon+"@2x.png");
+        $(forecastId).find(".forecast-future-temp").html(parseKelvinToFahrenheit(el.temp.max) + "°F");
+        $(forecastId).find(".forecast-future-wind").html(el.windspeed + "°");
+        $(forecastId).find(".forecast-future-humidity").html(el.humidity + "%");
     });
 }
 
@@ -75,16 +94,45 @@ function getUvIndexStatus(index) {
     return status;
 }
 
-async function searchWeatherReport(locale) {
-    var geoData = await getGeoData(locale);
-    
-    // Add geoData to searchHistory array
-    addGeoDataToSearchHistory(geoData);
+async function searchWeatherReport(locale, kill = false) {
 
-    // Get weatherReport
-    var weatherReport = await getWeatherReport(geoData);
-    return weatherReport;
+    var geoData = await getGeoData(locale);
+
+    if (geoData) {
+        // Add geoData to searchHistory array
+        addGeoDataToSearchHistory(geoData);
+
+        // Get weatherReport
+        var weatherReport = await getWeatherReport(geoData);
+        return weatherReport;
+
+    } else {
+        // No geoData, Rescue or Error
+        if(!kill) {
+            //Rescue Response
+            var rescueReport = await rescueWeatherReport(locale);
+            return rescueReport;
+        } else {
+            //Error Response
+            return false;
+        }
+    }
 }
+
+async function rescueWeatherReport(locale) {
+    //Add USA to string, Check if successful
+    var usaFix = locale + ", USA";
+    var usaFixResponse = await searchWeatherReport(usaFix, true);
+
+    if (usaFixResponse) {
+        return usaFixResponse;
+    } else {
+        // Try future rescue attempt;
+        return false;
+    }
+
+}
+
 
 function addGeoDataToSearchHistory(geoData) {
     var searchHistory = getSearchHistory();
@@ -102,14 +150,17 @@ function getGeoData(locale) {
     var fetchData = fetch(fetchURL)
     .then(response => response.json())
     .then(function(data){
-        var geoData = {
-            name: data[0].name,
-            lat: data[0].lat,
-            lon: data[0].lon
+        if (data.length > 0) {
+            var geoData = {
+                name: data[0].name,
+                lat: data[0].lat,
+                lon: data[0].lon
+            }
+            return geoData;
+        } else {
+            return false;
         }
-        return geoData;
     })
-
     return fetchData;
 }
 
@@ -150,4 +201,27 @@ function parseWeatherObj(cityName, weatherObj) {
 }
 
 weatherDashboardInit();
+
+$(document).on('click', ".history-item", async function(e){
+    e.preventDefault;
+    var geoData = {
+        name: e.target.dataset.name,
+        lat: e.target.dataset.lat,
+        lon: e.target.dataset.lon
+    };
+    var weatherReport = await getWeatherReport(geoData);
+    renderWeatherReport(weatherReport);
+});
+
+$(document).on("click", "#dash-search-submit", async function(e){
+    e.preventDefault();
+    var input = $('#locale-input').val().trim();
+    if (input){
+        var weatherReport = await searchWeatherReport(input);
+        if (weatherReport){
+            renderWeatherReport(weatherReport);
+            $('#locale-input').val('');
+        }
+    }
+});
 
