@@ -21,6 +21,7 @@ async function weatherDashboardInit() {
     if (searchHistory) {
         renderSearchHistory(searchHistory);
         var weatherReport = await getWeatherReport(searchHistory[0]);
+        console.log("init", searchHistory, weatherReport);
         if (weatherReport) {
             renderWeatherReport(weatherReport);
         }
@@ -183,6 +184,7 @@ function getWeatherReport(geoData) {
 
         return cityWeatherObj;
     });
+    console.log("getWeatherReport", geoData, fetchData);
     return fetchData;
 }
 
